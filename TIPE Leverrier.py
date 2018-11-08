@@ -3,7 +3,7 @@ from numpy.polynomial import Polynomial
 import numpy.linalg as alg
 import matplotlib.pyplot as plt
 import math
-import mpl_toolkits.mplot3d as Axes3D
+from mpl_toolkits.mplot3d import Axes3D
 
 
 ## Valeurs
@@ -87,8 +87,16 @@ def D(l):
         D[i,i] = vp[i]
     return D
     
-#Diagonalisation : P
-    
-#Définition de K = PH
+#Diagonalisation : Q
+def Q(l):
+    n = len(l)
+    vp = valeurs_propres( B(l) )
+    X0 = np.zeros((1,n))
+    Q = np.zeros((n,0))
+    for i in range(n):
+        S = A-vp[i]*np.eye(n)
+        X = np.linalg.solve(S,X0)
+        Q = np.concatenate(Q,X,axis=1)
+    return Q
 
 #Résolution de H :
