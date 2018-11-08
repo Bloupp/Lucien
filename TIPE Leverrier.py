@@ -20,11 +20,11 @@ VP = 30.4E3
 
 #Calcul des coefficient (p,v)
 def coef_p(p,v):
-    return (2*f*m[v]*N[p,v]/(n[p]*(a[p]**2))
+    return (2*f*m[v]*N[p,v]/(n[p]*(a[p]**2)))
     
 #Calcul des coefficient [p,v]
 def coef_c(p,v):
-    return (2*f*m[v]*P[p,v]/(n[p]*(a[p]**2))
+    return (2*f*m[v]*P[p,v]/(n[p]*(a[p]**2)))
  
 #Construction de A, l=liste des numéros de planètes prises en compte
 def A(l):
@@ -32,12 +32,12 @@ def A(l):
     A = np.zeros((n,n))
     for i in l:
         for j in l:
-            if i=j then:
+            if i==j:
                 s_i = 0
                 for k in l:
-                    if k != i then:
-                        s += coef_p(i,k)
-                A[i,i] = s
+                    if k != i:
+                        s_i += coef_p(i,k)
+                A[i,i] = s_i
             else:
                 A[i,j] = coef_c(i,j)
     return A
@@ -88,12 +88,7 @@ def D(l):
     return D
     
 #Diagonalisation : P
-def P(l):
     
 #Définition de K = PH
 
 #Résolution de H :
-def K(t):
-    
-            
-            
