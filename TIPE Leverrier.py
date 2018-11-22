@@ -16,6 +16,10 @@ VP = 30.4E3
 #Faire une BDD contenant les valeurs utiles au calcul de (p,v) et [p,v]
 #On va avoir un tableau m,n,a,N,P contenant les valeurs
 
+#On va avoir des tableaux contenant les CI de TOUTES les planètes
+H0 = []
+L0 = []
+
 ## Détermination de A :
 
 #Calcul des coefficient (p,v)
@@ -78,7 +82,7 @@ def valeurs_propres(A):
 
 ## Résolution de l'équation différentielle
 
-#Diagonalisation : matrice diagonale
+#Diagonalisation de A(l), l une liste de planètes donnée : matrice diagonale
 def D(l):
     n = len(l)
     D = np.zeros((n,n))
@@ -87,7 +91,7 @@ def D(l):
         D[i,i] = vp[i]
     return D
     
-#Diagonalisation : Q
+#Diagonalisation de A(l), l une liste de planètes donnée : Q
 def Q(l):
     n = len(l)
     vp = valeurs_propres( B(l) )
@@ -99,4 +103,68 @@ def Q(l):
         Q = np.concatenate(Q,X,axis=1)
     return Q
 
-#Résolution de H :
+#Résolution de K : Cette fonction va renvoyer un tableau contenant (Ai,Bi,wi) à la ieme ligne, les constantes de résolution. La connaissance de celà nous permettera de connaitre K entièrement et donc de connaitre H entièrement
+def resol_K(l):
+    n = len(l)
+    A = A(l)
+    D = D(l)
+    P = Q(l)
+    K = np.zeros((n,3))
+    for i in range(n):
+        wi = np.sqrt(D[i,i])
+        K[i,2] = w1                         #pulsation
+        for j in range(n):
+            K[i,0] += P[i,j]*H0[l[j]]       #Ai
+            Cj = 0
+            for k in range(n):
+                Cj += A[j,k]*L0[l[k]]       #hj'(0)
+            K[i,1] += P[i,j]*Cj
+            K[i,1] = K[i,1]/wi
+    return K
+    
+#Résolution de H : H=P^{-1]*K  --> A optimiser
+#Cette fonction renvoie un tableau où la ieme ligne est la valeur prise par les h(l(i)) à l'instant t 
+def résol_H(l,t):
+    n=len(l)
+    K = resol_K(l)
+    inv_P = alg.inv(Q(l))
+    H = []
+    for i in range(n):
+        hi=0
+        for j in range(n):
+            hi += inv_P[i,j]*(K[i,0]*np.cos(K[i,2]*t)+K[i,1]*np.sin(K[i,2]*t))
+        H.append(hi)
+    return H
+    
+#On fait pareil pour L, la seule différence va être les conditions initiales vue que les équations différentielles sont les mêmes
+def resol_J(l):
+    n = len(l)
+    A = A(l)
+    D = D(l)
+    P = Q(l)
+    J = np.zeros((n,3))
+    for i in range(n):
+        wi = np.sqrt(D[i,i])
+        J[i,2] = w1                         #pulsation
+        for j in range(n):
+            J[i,0] += P[i,j]*L0[l[j]]       #Ai
+            Cj = 0
+            for k in range(n):
+                Cj += A[j,k]*H0[l[k]]       #hj'(0)
+            J[i,1] += P[i,j]*Cj
+            J[i,1] = J[i,1]/wi
+    return K
+    
+#Résolution de L : L=P^{-1]*J  --> A optimiser
+#Cette fonction renvoie un tableau où la ieme ligne est la valeur prise par les L(l(i)) à l'instant t 
+def résol_L(l,t):
+    n=len(l)
+    J = resol_J(l)
+    inv_P = alg.inv(Q(l))
+    L = []
+    for i in range(n):
+        hi=0
+        for j in range(n):
+            li += inv_P[i,j]*(J[i,0]*np.cos(J[i,2]*t)+J[i,1]*np.sin(J[i,2]*t))
+        L.append(li)
+    return L
