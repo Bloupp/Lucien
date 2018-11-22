@@ -94,11 +94,12 @@ def D(l):
 #Diagonalisation de A(l), l une liste de planètes donnée : Q
 def Q(l):
     n = len(l)
-    vp = valeurs_propres( B(l) )
+    B=B(l)
+    vp = valeurs_propres( B )
     X0 = np.zeros((1,n))
     Q = np.zeros((n,0))
     for i in range(n):
-        S = A-vp[i]*np.eye(n)
+        S = B-vp[i]*np.eye(n)
         X = np.linalg.solve(S,X0)
         Q = np.concatenate(Q,X,axis=1)
     return Q
