@@ -88,46 +88,39 @@ def A(l):
                 A[i,j] = coef_c(i,j)
     return A
 
-def resol_tot_H(l):
+#On résoud le système. Cette fonction revoie 2 tableaux de fonctions
+def resol_totale(l):
     n=len(l)
     A=A(l)
     B=np.dot(A,A)
     iP,D,P = diagonalisation(B)
-    def resol_K(l):
+    def resol_red(R1,R2):
         K = np.zeros((n,3))
         for i in range(n):
             wi = np.sqrt(D[i,i])
             K[i,2] = w1                         #pulsation
             for j in range(n):
-                K[i,0] += P[i,j]*H0[l[j]]       #Ai
+                K[i,0] += P[i,j]*R1[l[j]]       #Ai
                 Cj = 0
                 for k in range(n):
-                    Cj += A[j,k]*L0[l[k]]       #hj'(0)
+                    Cj += A[j,k]*R2[l[k]]
                 K[i,1] += P[i,j]*Cj
-                K[i,1] = K[i,1]/wi
+                K[i,1] = K[i,1]/wi              #Bi
         return K
-    def resol_J(l):
-        J = np.zeros((n,3))
+    K=resol_red(H0,L0)
+    J=resol_red(L0,H0)
+    def dered(C):          #Va renvoyer un tableau de fonctions
+        def add_func(f,g):
+            return lambda x: f(x) + g(x)
+        H=[lambda x:0 for i in range(n)]
         for i in range(n):
-            wi = np.sqrt(D[i,i])
-            J[i,2] = w1                         #pulsation
             for j in range(n):
-                J[i,0] += P[i,j]*L0[l[j]]       #Ai
-                Cj = 0
-                for k in range(n):
-                    Cj += A[j,k]*H0[l[k]]       #lj'(0)
-                J[i,1] += P[i,j]*Cj
-                J[i,1] = J[i,1]/wi
-        return J
-    K=resol_K(l)
-    J=resol_J(l)
-    def resol_H():          #Va renvoyer un tableau de fonctions
-            H=[]
-            for i in range(n):
-                for j in range(n):
-                    def s(t):
-                        return iP[i,j]*(K[i,0]*np.cos(K[i,2]*t)+K[i,1]*np.sin(K[i,2]*t))
-                    def Hj(t)=
-                H.append(hi)
-            return H
-        
+                H[i] = add_func (H[i],(lambda x: iP[i,j]*(C[j,0]*np.cos(C[j,2]*x)+C[j,1]*np.sin(C[j,2]*x))))
+        return H
+    return dered(K), dered(J)
+
+'''
+H,L=resol_totale(l)
+
+T=np.linspace(0,3.153*(10**12),10)
+'''
