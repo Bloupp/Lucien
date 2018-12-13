@@ -94,6 +94,7 @@ def resol_totale(l):
     A=A(l)
     B=np.dot(A,A)
     iP,D,P = diagonalisation(B)
+    #Fait la résolution pour la matrice D du système et renvoie un tableau contenant les constantes à l'aide de R1 et R2, qui sont les matrices colonnes contenant les conditions initiales
     def resol_red(R1,R2):
         K = np.zeros((n,3))
         for i in range(n):
@@ -109,7 +110,7 @@ def resol_totale(l):
         return K
     K=resol_red(H0,L0)
     J=resol_red(L0,H0)
-    def dered(C):          #Va renvoyer un tableau de fonctions
+    def dered(C):          #Va renvoyer un tableau de fonctions et "déréduire" la solution
         def add_func(f,g):
             return lambda x: f(x) + g(x)
         H=[lambda x:0 for i in range(n)]
