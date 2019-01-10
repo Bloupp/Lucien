@@ -57,7 +57,7 @@ def Q(M):
 
 def diagonalisation(M):
     Q=Q(M)
-    return inv.alg(Q),D(M),Q
+    return alg.inv(Q),D(M),Q
     
     
 ## Je fais une fonction qui va renvoyer la matrice colonne des fonctions de H et L
@@ -85,11 +85,11 @@ def A(l):
                         s_i += coef_p(i,k)
                 A[i,i] = s_i
             else:
-                A[i,j] = coef_c(i,j)
+                A[i,j] = -coef_c(i,j)
     return A
 
-#On résoud le système. Cette fonction revoie 2 tableaux de fonctions
-def resol_totale(l):
+#On résoud le système. Cette fonction prend en entrée les listes des conditions initiales et renvoie 2 tableaux de fonctions
+def resol_totale(l,CI1,CI2):
     n=len(l)
     A=A(l)
     B=np.dot(A,A)
@@ -99,7 +99,7 @@ def resol_totale(l):
         K = np.zeros((n,3))
         for i in range(n):
             wi = np.sqrt(D[i,i])
-            K[i,2] = w1                         #pulsation
+            K[i,2] = wi                         #pulsation
             for j in range(n):
                 K[i,0] += P[i,j]*R1[l[j]]       #Ai
                 Cj = 0
@@ -108,8 +108,8 @@ def resol_totale(l):
                 K[i,1] += P[i,j]*Cj
                 K[i,1] = K[i,1]/wi              #Bi
         return K
-    K=resol_red(H0,L0)
-    J=resol_red(L0,H0)
+    K=resol_red(CI1,CI2)
+    J=resol_red(CI2,CI1)
     def dered(C):          #Va renvoyer un tableau de fonctions et "déréduire" la solution
         def add_func(f,g):
             return lambda x: f(x) + g(x)
@@ -121,7 +121,6 @@ def resol_totale(l):
     return dered(K), dered(J)
 
 '''
-H,L=resol_totale(l)
-
-T=np.linspace(0,3.153*(10**12),10)
+H,L=resol_totale(l,H0,L0)
+P,Q=resol_totale(l,P0,Q0)
 '''
