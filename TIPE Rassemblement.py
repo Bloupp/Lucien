@@ -63,6 +63,42 @@ def diagonalisation(M):
 ## Je fais une fonction qui va renvoyer la matrice colonne des fonctions de H et L
 
 #La fonction qui suit se place comme un moyen d'application de l'algorithme construit jusqu'ici, celle-ci est faite dans le but de s'executer en un temps minimum
+#On a tout d'abord besoin des valeurs
+G = 6.67408*(10**-11)
+Ms = 1.989*(10**30)
+m = [3.285*(10**23), 4.867*(10**24), 5.972*(10**24), 6.39*(10**23), 1.898*(10**27), 5.863*(10**26), 8.681*(10**25), 1.024*(10**26)]
+a = [57909227000, 108208475000, 149598262000, 227943824000, 778340821000, 1426666422000, 2870658186000, 4498396441000]
+n = [ np.sqrt(G*Ms/(a[i]**3)) for i in range(8) ]
+
+def Fourier(n,i,j):
+    alp = a[i]/a[j]
+    def signal(t):
+        return alp*np.cos(n*t)/(a[j]*((1+(alp**2)-2*alp*np.cos(t))**(3/2)))
+    return integr.quad(signal,-np.pi,np.pi)[0]/np.pi
+
+#Calcul du tableau de coefficients N(p,v)
+def N():
+    n = len(m)
+    N=np.zeros((n,n))
+    for i in range(n):
+        for j in range(i,n):
+            Nij = Fourier(1,i,j)/8
+            N[i,j],N[j,i] = Nij, Nij
+    return N
+
+N = N()
+
+#Calcul du tableau de coefficients P(p,v)
+def P():
+    n = len(m)
+    P=np.zeros((n,n))
+    for i in range(n):
+        for j in range(i,n):
+            Pij = Fourier(2,i,j)/8
+            P[i,j],P[j,i] = Pij, Pij
+    return P
+    
+P = P()
 
 #Calcul des coefficient (p,v)
 def coef_p(p,v):
