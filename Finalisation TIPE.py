@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import scipy.integrate as integr
 
 pi=np.pi
+annee = 31557600
 
 ##Méthode de détermination des valeurs propres par l'algorithme de Leverrier :
 
@@ -148,7 +149,7 @@ def Am(l):
 def add_func(f,g):
     return lambda x: f(x) + g(x)
 
-#Je refait la fonction principale, une fois toutes les fonctions annexes finies
+#Je refait la fonction principale, une fois toutes les fonctions annexes finies, celle-ci prend en entrée une liste de planètes à prendre en compte et renvoie deux listes de fonctions H(t) et L(t)
 def solution_HL(l):
     n = len(planetes)
     A = Am(planetes)
@@ -166,7 +167,7 @@ def solution_HL(l):
     #On obtient alors les tableaux de fonctions suivants
     Y = [lambda t : alpha_h[i]*np.cos(D[i,i]*t) + beta_h[i] *np.sin(D[i,i]*t) for i in range(n)]
     Z = [lambda t : alpha_l[i]*np.cos(D[i,i]*t) + beta_l[i] *np.sin(D[i,i]*t)for i in range(n)]
-    #On recombine les différentes valeurs de Y,Z pour obtenir H,L
+    #On recombine les différentes valeurs pour obtenir H(t) = QY(t), et L(t) = QZ(t)
     H,L = [lambda x : 0 for i in range(n)],[lambda x : 0 for i in range(n)]
     for i in range(n):
         for j in range(n):
@@ -175,7 +176,7 @@ def solution_HL(l):
     return H,L
 
 H,L = solution_HL(planetes)
-T=np.linspace(-3155673600000,315567360000,20000)     
+T=np.linspace(-100000*annee,100000*annee,20000)     
 
 plt.figure()
 E2 = [np.sqrt(H[2](t)**2 + L[2](t)**2) for t in T]
