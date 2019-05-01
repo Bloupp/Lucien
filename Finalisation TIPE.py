@@ -77,9 +77,12 @@ Ms = 1.989*(10**30)
 m = [3.285*(10**23), 4.867*(10**24), 5.972*(10**24), 6.39*(10**23), 1.898*(10**27), 5.863*(10**26), 8.681*(10**25), 1.024*(10**26)]
 a = [57909227000, 108208475000, 149598262000, 227943824000, 778340821000, 1426666422000, 2870658186000, 4498396441000]
 n_p = [ np.sqrt(G*Ms/(a[i]**3)) for i in range(8) ]
+T_j = [87.95569, 224.667, 365.256363, 686.885, 4332.01, 10754, 30698 ,60216.8 ]
+T_s = [24*3600*T for T in T_j]
+n_p2= [ 2*pi/T for T in T_s]
 
 e = [0.20564, 0.0068, 0.0167, 0.0934, 0.0484, 0.0538, 0.0472, 0.0086]
-lpd = [77.43, 131.6, 102.937, 336.1, 14.755, 92.64, 170.92, 44,984]
+lpd = [77.43, 131.6, 102.937, 336.1, 14.755, 92.64, 170.92, 44.984]
 lpr = [x*pi/180 for x in lpd]
 
 H0 = [e[i]*np.sin(lpr[i]) for i in range(8)]
@@ -100,13 +103,13 @@ def N():
     N=np.zeros((n,n))
     for i in range(n):
         for j in range(i,n):
-            Nij = Fourier(1,i,j)/8
+            Nij = Fourier(1,i,j)/16
             N[i,j],N[j,i] = Nij, Nij
     for i in range(n):
         N[i,i] = 0
     return N
 
-N = N()
+NL = N()
 
 #Calcul du tableau de coefficients P(p,v)
 def P():
@@ -114,21 +117,21 @@ def P():
     P=np.zeros((n,n))
     for i in range(n):
         for j in range(i,n):
-            Pij = Fourier(2,i,j)/8
+            Pij = Fourier(2,i,j)/16
             P[i,j],P[j,i] = Pij, Pij
     for i in range(n):
         P[i,i] = 0
     return P
     
-P = P()
+PL = P()
 
 #Calcul des coefficient (p,v)
 def coef_p(p,v):
-    return (2*G*m[v]*N[p,v]/(n_p[p]*(a[p]**2)))
+    return (2*G*m[v]*NL[p,v]/(n_p[p]*(a[p]**2)))
     
 #Calcul des coefficient [p,v]
 def coef_c(p,v):
-    return (2*G*m[v]*P[p,v]/(n_p[p]*(a[p]**2)))
+    return (2*G*m[v]*PL[p,v]/(n_p[p]*(a[p]**2)))
 
 #Calcul de A avec le tableur de planètes prises en compte
 def Am(l):
@@ -180,7 +183,6 @@ T=np.linspace(-100000*annee,100000*annee,20000)
 
 plt.figure()
 E2 = [np.sqrt(H[2](t)**2 + L[2](t)**2) for t in T]
-#E3 = [np.sqrt(H[0](t)**2 + L[0](t)**2) - np.sqrt(H[0](0)**2 + L[0](0)**2)+e[0] for t in T]
 plt.plot(T,E2, lw=2)
 #plt.plot(T,E3, lw=2)
 plt.show()
