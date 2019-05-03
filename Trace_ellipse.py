@@ -21,22 +21,60 @@ def r(v):
 # On calcul ensuite les coordonnées cartésiennes :
 def cart(v):
     rd = r(v)
-    x= rd*np.cos(phi)*np.cos(teta)
-    y = rd*np.cos(phi)*np.sin(teta)
+    x= rd*np.cos(phi)*np.cos(teta+v)
+    y = rd*np.cos(phi)*np.sin(teta+v)
     z = rd*np.sin(phi)
     return (x,y,z)
 
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
 #Ya plus qu'a plot le tout en 3 dimenstions
 V = [2*pi*i/100 for i in range(100)]
-X = [cart(v)[0] for v in V]
-Y = [cart(v)[1] for v in V]
-Z = [cart(v)[2] for v in V]
+XYZ = [cart(v) for v in V]
+X = [x[0] for x in XYZ]
+Y = [y[1] for y in XYZ]
+Z = [z[2] for z in XYZ]
 
-mpl.rcParams['legend.fontsize'] = 10
+ax.scatter(X,Y,Z, c='r')
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot(X,Y,V)
-ax.legend()
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
 
 plt.show()
+
+#Une fois cela fait, regroupons cela dans un programme
+
+def afficheEllipse(a,e,phi,teta):
+    p = a*(1-e**2)
+    def r(v):
+        return p/(1-e*np.cos(v-teta))
+    def cart(v):
+        rd = r(v)
+        x = rd*np.cos(phi)*np.cos(teta+v)
+        y = rd*np.cos(phi)*np.sin(teta+v)
+        z = rd*np.sin(phi)
+        return [x,y,z]
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V= [pi*i/180 for i in range(360)]
+    XYZ = [cart(v) for v in V]
+    X = [x[0] for x in XYZ]
+    Y = [y[1] for y in XYZ]
+    Z = [z[2] for z in XYZ]
+    ax.scatter(X,Y,Z, c='r')
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    plt.show()
+
+#Enfin réalisons un fonction qui fait appel aux tableaux construits dans la partie sur Le Verrier afin de tracer l'orbite d'une planète à un temps donné
+
+def affichageTrajectoire(i,t):
+    exc = E[i](t)
+    ph = PHI[i](t)
+    th = THETA[i](t)
+    dga = a[i]
+    afficheEllipse(dga,exc,ph,th)
+
