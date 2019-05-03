@@ -266,9 +266,14 @@ T=np.linspace(-durée*annee,duree*annee,20000)
 
 #Affichage de toutes les excentricités sur la même courbe
 plt.figure()
+T_aff = np.linspace(-duree,duree,20000)
 for i in range(1,len(planetes)):
     E = [excentricite(i,t) for t in T]
-    plt.plot(T,E, lw=2)
+    plt.plot(T_aff,E, lw=2)
+plt.ylabel("Excentricités")
+plt.xlabel("Temps - à 0 à l'instant présent (en années)")
+plt.title("Variation des excentricités au cours du temps")
+plt.legend(nom[1:])
 plt.grid()
 plt.show()
 
