@@ -39,7 +39,6 @@ def valeurs_propres(A):
     return p.roots()
 
 
-
 ## Diagonalisation de la matrice M
 
 def Dm(M):
@@ -66,25 +65,48 @@ def diagonalisation(M):
     return alg.inv(Q),np.diag(D),Q
     
 
-
 ## Quelques valeurs utiles pour le système solaire
-G = 6.67408*(10**-11)
-Ms = 1.989*(10**30)
+
+G = 6.67408*(10**-11)   #Constante de gravitation universelle
+Ms = 1.989*(10**30)     #Masse du soleil
+nom = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune']
+#Masses
 m = [3.285*(10**23), 4.867*(10**24), 5.972*(10**24), 6.39*(10**23), 1.898*(10**27), 5.863*(10**26), 8.681*(10**25), 1.024*(10**26)]
+#Demi-grands axes
 a = [57909227000, 108208475000, 149598262000, 227943824000, 778340821000, 1426666422000, 2870658186000, 4498396441000]
+#Moyen mouvements
 n_p = [ np.sqrt(G*Ms/(a[i]**3)) for i in range(8) ]
-''' Je vérifie ici les valeurs de n_p, cela convient bien '''
+''' Je vérifie ici les valeurs de n_p, cela convient bien'''
+#Périodes de révolution en jours
 T_j = [87.95569, 224.667, 365.256363, 686.885, 4332.01, 10754, 30698 ,60216.8 ]
+#Périodes de révolution en secondes
 T_s = [24*3600*T for T in T_j]
+#Moyen mouvements
 n_p2= [ 2*pi/T for T in T_s]
 
+#Excentricités
 e = [0.20564, 0.0068, 0.0167, 0.0934, 0.0484, 0.0538, 0.0472, 0.0086]
+#Longitudes du périhélie en degrés
 lpd = [77.43, 131.6, 102.937, 336.1, 14.755, 92.64, 170.92, 44.984]
+#Longitudes du périhélie en radians
 lpr = [x*pi/180 for x in lpd]
 
+#Valeurs initiales de H et L
 H0 = [e[i]*np.sin(lpr[i]) for i in range(8)]
 L0 = [e[i]*np.cos(lpr[i]) for i in range(8)]
 
+#Plan de l'obite en degrés (Noeud ascendant)
+thd = [48.33, 76.7, 174.873, 49.6, 100.5, 113.7, 74.02, 131.784]
+#Inclianaisons de l'orbite en degrés
+incld = [7.005, 3.3947, 0, 1.85, 1.304, 2.486, 0.773, 1.77]
+#Plan de l'obite en radians (Noeud ascendant)
+th = [pi*thd[i]/180 for i in range(8)]
+#Inclianaisons de l'orbite en radians
+incl = [pi*incld[i] for i in range(8)]
+
+#Valeurs initiales de P et Q
+P0 = [np.tan(incl[i])*np.sin(th[i]) for i in range(8)]
+Q0 = [np.tan(incl[i])*np.cos(th[i]) for i in range(8)]
 
 
 ## Fonction de résolution du problème posé
@@ -220,15 +242,49 @@ planetes = [0,1,2,3,4,5,6,7]
 H,L = solution_HL(planetes)
 P,Q = solution_PQ(planetes)
 
+def excentricite(i,t):
+    return np.sqrt(H[i](t)**2 + L[i](t)**2)
+
+#Les fonctions suivantes donnent des résultats étranges... Il faut ici gérer les cas ou tan passe par pi/2 à la main
+def longitudeperihelie(i,t):
+    v = H[i](t)/L[i](t)
+    return np.arctan(v)
+
+def theta(i,t):
+    v = P[i](t)/Q[i](t)
+    return np.arctan(v)
+
+def inclinaison(i,t):
+    v = np.sqrt(P[i](t)**2 + L[i](t)**2)
+    return np.arctan(v)
+
 
 ## Affichage des réultats : tracé courbes et ellipses
-T=np.linspace(-100000*annee,100000*annee,20000)     
+
+duree = 10000
+T=np.linspace(-durée*annee,duree*annee,20000)   
 
 #Affichage de toutes les excentricités sur la même courbe
 plt.figure()
-for i in range(len(planetes)):
-    E = [np.sqrt(H[i](t)**2 + L[i](t)**2) for t in T]
+for i in range(1,len(planetes)):
+    E = [excentricite(i,t) for t in T]
     plt.plot(T,E, lw=2)
+plt.grid()
+plt.show()
+
+#Affichage des Noeuds ascendants
+plt.figure()
+for i in range(1,len(planetes)):
+    N = [theta(i,t)*180/pi for t in T]
+    plt.plot(T,N, lw=2)
+plt.grid()
+plt.show()
+
+#Affichage des inclinaisons
+plt.figure()
+for i in range(1,len(planetes)):
+    I = [inclinaison(i,t)*180/pi for t in T]
+    plt.plot(T,I, lw=2)
 plt.grid()
 plt.show()
 
