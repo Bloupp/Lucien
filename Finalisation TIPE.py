@@ -184,15 +184,18 @@ def mapp(f,T):
     return [f(t) for t in T]
 
 #Je réalise alors la fonction principale de résolution pour déterminer H et L, celle ci renvoie 2 tableaux de fonctions
-def solution_HL(l):
+#Ici CI1 et CI2 sont les conditions initiales
+def solution(l,CI1,CI2):
     n = len(l)
+    #On construit le tableau de constantes convenant puis on découpe les conditions initiales a la bonne taille
     A = Am(l)
     iQ,D,Q = diagonalisation(A)
+    C1 , C2 = [CI1[i] for i in l], [CI2[i] for i in l]
     #On construit les conditions initiales :
-    Y0 = np.dot(iQ,H0)
-    Yp0 = np.dot(np.dot(iQ,A),L0)
-    Z0 = np.dot(iQ,L0)
-    Zp0 = -np.dot(np.dot(iQ,A),H0)
+    Y0 = np.dot(iQ,C1)
+    Yp0 = np.dot(np.dot(iQ,A),C2)
+    Z0 = np.dot(iQ,C2)
+    Zp0 = -np.dot(np.dot(iQ,A),C1)
     #On en déduit les valeurs des constantes d'intégration :
     alpha_h = Y0
     beta_h = [Yp0[i]/D[i,i] for i in range( n )]
@@ -211,36 +214,13 @@ def solution_HL(l):
     return Hsol,Lsol
 
 #La méthode est la même pour déterminer P et Q, la seule différence est dans les condition initiales
-def solution_PQ(l):
-    n = len(l)
-    A = Am(l)
-    iQ,D,Q = diagonalisation(A)
-    #On construit les conditions initiales :
-    Y0 = np.dot(iQ,P0)
-    Yp0 = np.dot(iQ,np.dot(A,Q0))
-    Z0 = np.dot(iQ,Q0)
-    Zp0 = -np.dot(iQ,np.dot(A,P0))
-    #On en déduit les valeurs des constantes d'intégration :
-    alpha_h = Y0
-    beta_h = [Yp0[i]/D[i,i] for i in range( n )]
-    alpha_l = Z0
-    beta_l = [Zp0[i]/D[i,i] for i in range( n )]
-    #On obtient alors les tableaux de fonctions suivants
-    def h(i):
-        return (lambda t : sum([Q[i,j]*(alpha_h[j]*np.cos(D[j,j]*t) + beta_h[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
-    def l(i):
-        return (lambda t : sum([Q[i,j]*(alpha_l[j]*np.cos(D[j,j]*t) + beta_l[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
-    Psol = mapp(h,range(n))
-    Qsol = mapp(l,range(n))
-    return Psol,Qsol
-
 
 ## Calcul des tableaux de fonction résultats
 
 planetes = [0,1,2,3,4,5,6,7]
 
-H,L = solution_HL(planetes)
-P,Q = solution_PQ(planetes)
+H,L = solution(planetes,H0,L0)
+P,Q = solution(planetes,P0,Q0)
 
 def excentricite(i,t):
     return np.sqrt(H[i](t)**2 + L[i](t)**2)
@@ -250,10 +230,12 @@ def longitudeperihelie(i,t):
     v = H[i](t)/L[i](t)
     return np.arctan(v)
 
+#Gérer le passage à pi/2
 def theta(i,t):
     v = P[i](t)/Q[i](t)
     return np.arctan(v)
 
+#Résultats totalement extravageant
 def inclinaison(i,t):
     v = np.sqrt(P[i](t)**2 + L[i](t)**2)
     return np.arctan(v)
@@ -262,7 +244,7 @@ def inclinaison(i,t):
 ## Affichage des réultats : tracé courbes et ellipses
 
 duree = 10000
-T=np.linspace(-durée*annee,duree*annee,20000)   
+T=np.linspace(-duree*annee,duree*annee,20000)   
 
 #Affichage de toutes les excentricités sur la même courbe
 plt.figure()
