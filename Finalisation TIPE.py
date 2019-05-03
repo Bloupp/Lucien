@@ -67,11 +67,7 @@ def diagonalisation(M):
     
 
 
-## Je fais une fonction qui va renvoyer la matrice colonne des fonctions de H et L
-
-#La fonction qui suit se place comme un moyen d'application de l'algorithme construit jusqu'ici, celle-ci est faite dans le but de s'executer en un temps minimum
-
-#On a tout d'abord besoin des valeurs
+## Quelques valeurs utiles pour le système solaire
 G = 6.67408*(10**-11)
 Ms = 1.989*(10**30)
 m = [3.285*(10**23), 4.867*(10**24), 5.972*(10**24), 6.39*(10**23), 1.898*(10**27), 5.863*(10**26), 8.681*(10**25), 1.024*(10**26)]
@@ -88,6 +84,12 @@ lpr = [x*pi/180 for x in lpd]
 
 H0 = [e[i]*np.sin(lpr[i]) for i in range(8)]
 L0 = [e[i]*np.cos(lpr[i]) for i in range(8)]
+
+
+
+## Fonction de résolution du problème posé
+
+#La fonction qui suit se place comme un moyen d'application de l'algorithme construit jusqu'ici, celle-ci est faite dans le but de s'executer en un temps minimum
 
 #Calcul des coefficients de Fourier, utiles lors du calcul des coefficients :
 def integrale(f,n,a,b):
