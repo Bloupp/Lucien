@@ -39,6 +39,7 @@ def valeurs_propres(A):
     return p.roots()
 
 
+
 ## Diagonalisation de la matrice M
 
 def Dm(M):
@@ -49,8 +50,7 @@ def Dm(M):
         D[i,i] = vp[i]
     return D
    
-''' Calcul de la base de vecteurs propres infructueux
-def Qm(M):
+def Qm(M):      #Calcul de la base de vecteurs propres infructueux
     n = len(list)
     vp = valeurs_propres( M )
     X0 = np.zeros((1,n))
@@ -60,12 +60,12 @@ def Qm(M):
         X = np.linalg.solve(S,X0)
         Q = np.concatenate((Q,X),axis=1)
     return Q
-'''
 
 def diagonalisation(M):
     D,Q=alg.eig(M)
     return alg.inv(Q),np.diag(D),Q
     
+
 
 ## Je fais une fonction qui va renvoyer la matrice colonne des fonctions de H et L
 
@@ -92,11 +92,19 @@ L0 = [e[i]*np.cos(lpr[i]) for i in range(8)]
 planetes = [0,1,2,3,4,5,6,7]
 
 #Calcul des coefficients de Fourier, utiles lors du calcul des coefficients :
+def integrale(f,n,a,b):
+    dt = (b-a)/n
+    s=0
+    for i in range(n):
+        s += (f((i+1)*dt)+f(i*dt))*dt/2
+    return s
+
 def Fourier(n,i,j):
     alp = a[i]/a[j]
-    def signal(t):
-        return alp*np.cos(n*t)/(a[j]*((1+(alp**2)-2*alp*np.cos(t))**(3/2)))
-    return integr.quad(signal,-np.pi,np.pi)[0]/np.pi
+    def s(t):
+        return np.cos(n*t)/((1+alp**2-2*alp*np.cos(t))**(3/2))
+    cn = 2*(integrale(s,10000,0,0.1)+integrale(s,1000,0.1,pi))/pi
+    return alp*cn/a[j]
 
 #Calcul du tableau de coefficients N(p,v)
 def N():
@@ -153,10 +161,10 @@ def Am(l):
 def mapp(f,T):
     return [f(t) for t in T]
 
-#Je refait la fonction principale, une fois toutes les fonctions annexes finies, celle-ci prend en entrée une liste de planètes à prendre en compte et renvoie deux listes de fonctions H(t) et L(t)
+#Je réalise alors la fonction principale de résolution pour déterminer H et L, celle ci renvoie 2 tableaux de fonctions
 def solution_HL(l):
-    n = len(planetes)
-    A = Am(planetes)
+    n = len(l)
+    A = Am(l)
     iQ,D,Q = diagonalisation(A)
     #On construit les conditions initiales :
     Y0 = np.dot(iQ,H0)
@@ -176,10 +184,36 @@ def solution_HL(l):
         return (lambda t : sum([Q[i,j]*(alpha_h[j]*np.cos(D[j,j]*t) + beta_h[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
     def l(i):
         return (lambda t : sum([Q[i,j]*(alpha_l[j]*np.cos(D[j,j]*t) + beta_l[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
-    H = mapp(h,range(n))
-    L = mapp(l,range(n))
-    return H,L
+    Hsol = mapp(h,range(n))
+    Lsol = mapp(l,range(n))
+    return Hsol,Lsol
 
+#La méthode est la même pour déterminer P et Q, la seule différence est dans les condition initiales
+def solution_PQ(l):
+    n = len(l)
+    A = Am(l)
+    iQ,D,Q = diagonalisation(A)
+    #On construit les conditions initiales :
+    Y0 = np.dot(iQ,P0)
+    Yp0 = np.dot(iQ,np.dot(A,Q0))
+    Z0 = np.dot(iQ,Q0)
+    Zp0 = -np.dot(iQ,np.dot(A,P0))
+    #On en déduit les valeurs des constantes d'intégration :
+    alpha_h = Y0
+    beta_h = [Yp0[i]/D[i,i] for i in range( n )]
+    alpha_l = Z0
+    beta_l = [Zp0[i]/D[i,i] for i in range( n )]
+    #On obtient alors les tableaux de fonctions suivants
+    def h(i):
+        return (lambda t : sum([Q[i,j]*(alpha_h[j]*np.cos(D[j,j]*t) + beta_h[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
+    def l(i):
+        return (lambda t : sum([Q[i,j]*(alpha_l[j]*np.cos(D[j,j]*t) + beta_l[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
+    Psol = mapp(h,range(n))
+    Qsol = mapp(l,range(n))
+    return Psol,Qsol
+
+
+## Calcul des tableaux de fonction résultats
 H,L = solution_HL(planetes)
 T=np.linspace(-100000*annee,100000*annee,20000)     
 
