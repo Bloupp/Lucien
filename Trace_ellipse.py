@@ -78,3 +78,29 @@ def affichageTrajectoire(i,t):
     dga = a[i]
     afficheEllipse(dga,exc,ph,th)
 
+def affichageTrajectoireDuree(i,n,pas):
+    phi = incl[i]
+    the = th[i]
+    dga = a[i]
+    def r(v,e):
+        return dga*(1-e**2)/(1-e*np.cos(v-the))
+    def cart(v,e):
+        rd = r(v,e)
+        x = rd*np.cos(phi)*np.cos(the+v)
+        y = rd*np.cos(phi)*np.sin(the+v)
+        z = rd*np.sin(phi)
+        return [x,y,z]
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V= [pi*i/180 for i in range(360)]
+    for j in range(n):
+        exc = excentricite(i,j*pas*annee)
+        XYZ = [cart(v,exc) for v in V]
+        X = [x[0] for x in XYZ]
+        Y = [y[1] for y in XYZ]
+        Z = [z[2] for z in XYZ]
+        ax.scatter(X,Y,Z)
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    plt.show()
