@@ -354,15 +354,7 @@ def affiche2Exc(R1,R2,t1,t2,n,L):
     plt.grid()
     plt.show()
 
-def aff2ExcGeneral(l1,l2,e1,e2,m1,m2,a1,a2,t1,t2,n,L):
+def aff2ExcGeneral(l1,l2,m1,m2,a1,a2,t1,t2,n,L):
     R1 = TabSol(l1,m1,a1,H0,L0,P0,Q0)
     R2 = TabSol(l2,m2,a2,H0,L0,P0,Q0)
     affiche2Exc(R1,R2,t1,t2,n,L)
-
-## Résultats de Le Verrier :
-E_terre=[0.046,0.0473,0.0452,0.0398,0.0316,0.0218,0.0131,0.0109,0.0151,0.0188,0.0187,0.0168,0.0115,0.0047,0.0059,0.0124,0.0173,0.0199,0.0211,0.0188,0.0176,0.0189]
-X=np.linspace(-110000,100000,22)
-
-plt.figure()
-plt.plot(X,E_terre)
-plt.show()
