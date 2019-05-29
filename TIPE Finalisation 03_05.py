@@ -221,6 +221,7 @@ planetes = [0,1,2,3,4,5,6,7]
 
 H,L = solution(planetes,H0,L0)
 P,Q = solution(planetes,P0,Q0)
+R = [H,L,P,Q]
 
 def excentricite(i,t,R):
     return np.sqrt(R[0][i](t)**2 + R[1][i](t)**2)
@@ -248,7 +249,7 @@ T_aff = np.linspace(-duree,duree,20000)
 #Affichage de toutes les excentricités sur la même courbe
 plt.figure()
 for i in range(1,len(planetes)):
-    E = [excentricite(i,t,[H,L,P,Q]) for t in T]
+    E = [excentricite(i,t,R) for t in T]
     plt.plot(T_aff,E, lw=2)
 plt.ylabel("Excentricités")
 plt.xlabel("Temps - à 0 à l'instant présent (en années)")
@@ -260,7 +261,7 @@ plt.show()
 #Affichage des Noeuds ascendants
 plt.figure()
 for i in range(1,len(planetes)):
-    N = [theta(i,t,[H,L,P,Q])*180/pi for t in T]
+    N = [theta(i,t,R)*180/pi for t in T]
     plt.plot(T_aff,N, lw=2)
 plt.grid()
 plt.show()
@@ -268,7 +269,7 @@ plt.show()
 #Affichage des inclinaisons
 plt.figure()
 for i in range(1,len(planetes)):
-    I = [inclinaison(i,t,[H,L,P,Q])*180/pi for t in T]
+    I = [inclinaison(i,t,R)*180/pi for t in T]
     plt.plot(T_aff,I, lw=2)
 plt.ylabel("Inclinaisons")
 plt.xlabel("Temps - à 0 à l'instant présent (en années)")
@@ -278,7 +279,47 @@ plt.grid()
 plt.show()
 
 #Mettre les fonctions de tracé ellipses
-
+def XEllipse(r,t,v,p):
+    return r*(np.cos(t)*np.cos(v-t)-np.sin(t)*np.sin(v-t)*np.cos(p))
+    
+def YEllipse(r,t,v,p):
+    return r*(np.sin(t)*np.cos(v-t)+np.cos(t)*np.sin(v-t)*np.cos(p))
+    
+def ZEllipse(r,t,v,p):
+    return r*np.sin(p)*np.sin(v-t)
+    
+def afficheEllipse(i,t,R):
+    ai = a[i]
+    e = excentricite(i,t,R)
+    teta = theta(i,t,R)
+    phi = inclinaison(i,t,R)
+    def r(v):
+        p = ai*(1-e**2)
+        return p/(1-e*np.cos(v-teta))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V = [k*pi/180 for k in range(360)]
+    X = [XEllipse(r(v),t,v,phi) for v in V]
+    Y = [YEllipse(r(v),t,v,phi) for v in V]
+    Z = [ZEllipse(r(v),t,v,phi) for v in V]
+    ax.scatter(X,Y,Z, c='r')
+    ax.scatter([0],[0],[0], c='b')
+    plt.show()
+    
+def afficheSystemeSolaire(t,R):
+    ecalc = [excentricite(i,t,R) for i in range(8)]
+    teta = [theta(i,t,R) for i in range(8)]
+    phi = [inclinaison(i,t,R) for i in range(8)]
+    def r(v,i):
+        p = a[i]*(1-ecalc[i]**2)
+        return p/(1-ecalc[i]*np.cos(v-teta[i]))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V = [k*pi/180 for k in range(360)]
+    for j in range(8):
+        ax.scatter([XEllipse(r(v,j),t,v,phi[j]) for v in V], [YEllipse(r(v,j),t,v,phi[j]) for v in V], [ZEllipse(r(v,j),t,v,phi[j]) for v in V])
+    ax.scatter([0],[0],[0], c='b')
+    plt.show()
 
 ## Analyse des résultats
 
