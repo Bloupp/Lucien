@@ -159,12 +159,16 @@ PL = P()
 
 #Calcul des coefficient (p,v)
 def coef_p(p,v,masse,dga):
+    if p==v:
+        return 0
     Nc = Fourier(1,p,v,dga)/8
     n_pa = [ np.sqrt(G*Ms/(dga[i]**3)) for i in range(8) ]
     return (2*G*masse[v]*Nc/(n_pa[p]*(dga[p]**2)))
 
 #Calcul des coefficient [p,v]
 def coef_c(p,v,masse,dga):
+    if p==v:
+        return 0
     Pc = Fourier(2,p,v,dga)/8
     n_pa = [ np.sqrt(G*Ms/(dga[i]**3)) for i in range(8) ]
     return (2*G*masse[v]*Pc/(n_pa[p]*(dga[p]**2)))
