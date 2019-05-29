@@ -48,7 +48,7 @@ def Dm(M):
     for i in range(n):
         D[i,i] = vp[i]
     return D
-   
+
 def Qm(M):      #Calcul de la base de vecteurs propres infructueux
     n = len(list)
     vp = valeurs_propres( M )
@@ -63,13 +63,14 @@ def Qm(M):      #Calcul de la base de vecteurs propres infructueux
 def diagonalisation(M):
     D,Q=alg.eig(M)
     return alg.inv(Q),np.diag(D),Q
-    
+
 
 ## Quelques valeurs utiles pour le système solaire
 
 G = 6.67408*(10**-11)   #Constante de gravitation universelle
 Ms = 1.989*(10**30)     #Masse du soleil
 nom = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune']
+planetes = [0,1,2,3,4,5,6,7]
 #Masses
 m = [3.285*(10**23), 4.867*(10**24), 5.972*(10**24), 6.39*(10**23), 1.898*(10**27), 5.863*(10**26), 8.681*(10**25), 1.024*(10**26)]
 #Demi-grands axes
@@ -121,12 +122,12 @@ def integrale(f,n,a,b):
         s += (f((i+1)*dt)+f(i*dt))*dt/2
     return s
 
-def Fourier(n,i,j):
-    alp = a[i]/a[j]
+def Fourier(n,i,j,dga):
+    alp = dga[i]/dga[j]
     def s(t):
         return np.cos(n*t)/((1+alp**2-2*alp*np.cos(t))**(3/2))
     cn = 2*(integrale(s,10000,0,0.1)+integrale(s,1000,0.1,pi))/pi
-    return alp*cn/a[j]
+    return alp*cn/dga[j]
 
 #Calcul du tableau de coefficients N(p,v)
 def N():
@@ -153,31 +154,35 @@ def P():
     for i in range(n):
         P[i,i] = 0
     return P
-    
+
 PL = P()
 
 #Calcul des coefficient (p,v)
-def coef_p(p,v):
-    return (2*G*m[v]*NL[p,v]/(n_p[p]*(a[p]**2)))
-    
+def coef_p(p,v,masse,dga):
+    Nc = Fourier(1,p,v,dga)/8
+    n_pa = [ np.sqrt(G*Ms/(dga[i]**3)) for i in range(8) ]
+    return (2*G*masse[v]*Nc/(n_pa[p]*(dga[p]**2)))
+
 #Calcul des coefficient [p,v]
-def coef_c(p,v):
-    return (2*G*m[v]*PL[p,v]/(n_p[p]*(a[p]**2)))
+def coef_c(p,v,masse,dga):
+    Pc = Fourier(2,p,v,dga)/8
+    n_pa = [ np.sqrt(G*Ms/(dga[i]**3)) for i in range(8) ]
+    return (2*G*masse[v]*Pc/(n_pa[p]*(dga[p]**2)))
 
 #Calcul de A avec le tableur de planètes prises en compte
-def Am(l):
+def Am(l,masse,dga):
     n = len(l)
     A = np.zeros((n,n))
-    for i in l:
-        for j in l:
+    for i in range(n):
+        for j in range(n):
             if i==j:
                 s_i = 0
                 for k in l:
                     if k != i:
-                        s_i += coef_p(i,k)
+                        s_i += coef_p(l[i],k,masse,dga)
                 A[i,i] = s_i
             else:
-                A[i,j] = -coef_c(i,j)
+                A[i,j] = -coef_c(l[i],l[j],masse,dga)
     return A
 
 def mapp(f,T):
@@ -185,10 +190,10 @@ def mapp(f,T):
 
 #Je réalise alors la fonction principale de résolution pour déterminer H et L, celle ci renvoie 2 tableaux de fonctions
 #Ici CI1 et CI2 sont les conditions initiales
-def solution(l,CI1,CI2):
+def solution(l,masse,dga,CI1,CI2):
     n = len(l)
     #On construit le tableau de constantes convenant puis on découpe les conditions initiales a la bonne taille
-    A = Am(l)
+    A = Am(l,masse,dga)
     iQ,D,Q = diagonalisation(A)
     C1 , C2 = [CI1[i] for i in l], [CI2[i] for i in l]
     #On construit les conditions initiales :
@@ -205,52 +210,51 @@ def solution(l,CI1,CI2):
     Y = [lambda t : alpha_h[i]*np.cos(D[i,i]*t) + beta_h[i] *np.sin(D[i,i]*t) for i in range(n)]
     Z = [lambda t : alpha_l[i]*np.cos(D[i,i]*t) + beta_l[i] *np.sin(D[i,i]*t)for i in range(n)]
     #On recombine les différentes valeurs pour obtenir H(t) = QY(t), et L(t) = QZ(t)
-    def h(i):
+    def sol1(i):
         return (lambda t : sum([Q[i,j]*(alpha_h[j]*np.cos(D[j,j]*t) + beta_h[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
-    def l(i):
+    def sol2(i):
         return (lambda t : sum([Q[i,j]*(alpha_l[j]*np.cos(D[j,j]*t) + beta_l[j] *np.sin(D[j,j]*t)) for j in range(n)] ))
-    Hsol = mapp(h,range(n))
-    Lsol = mapp(l,range(n))
-    return Hsol,Lsol
+    Sol1 = mapp(sol1,range(n))
+    Sol2 = mapp(sol2,range(n))
+    return Sol1,Sol2
 
 #La méthode est la même pour déterminer P et Q, la seule différence est dans les condition initiales
 
+def TabSol(l,masse,dga,H01,L01,P01,Q01):
+    H1,L1 = solution(l,masse,dga,H01,L01)
+    P1,Q1 = solution(l,masse,dga,P01,Q01)
+    return [H1,L1,P1,Q1]
+
 ## Calcul des tableaux de fonction résultats
 
-planetes = [0,1,2,3,4,5,6,7]
-
-H,L = solution(planetes,H0,L0)
-P,Q = solution(planetes,P0,Q0)
-
-def excentricite(i,t):
-    return np.sqrt(H[i](t)**2 + L[i](t)**2)
+def excentricite(i,t,R):
+    return np.sqrt(R[0][i](t)**2 + R[1][i](t)**2)
 
 #Les fonctions suivantes donnent des résultats étranges... Il faut ici gérer les cas ou tan passe par pi/2 à la main
-def longitudeperihelie(i,t):
-    v = H[i](t)/L[i](t)
+def longitudeperihelie(i,t,R):
+    v = R[0][i](t)/R[1][i](t)
     return np.arctan(v)
 
-#Gérer le passage à pi/2
-def theta(i,t):
-    v = P[i](t)/Q[i](t)
+def theta(i,t,R):
+    v = R[2][i](t)/R[3][i](t)
     return np.arctan(v)
 
-#Résultats totalement extravageant
-def inclinaison(i,t):
-    v = np.sqrt(P[i](t)**2 + L[i](t)**2)
+def inclinaison(i,t,R):
+    v = np.sqrt(R[2][i](t)**2 + R[3][i](t)**2)
     return np.arctan(v)
 
 
-## Affichage des réultats : tracé courbes et ellipses
+## Affichage des réultats : tracé courbes et ellipses pour la configuration présente
 
-duree = 10000
-T=np.linspace(-duree*annee,duree*annee,20000)   
+duree = 100000
+T = np.linspace(-duree*annee,duree*annee,20000)
+T_aff = np.linspace(-duree,duree,20000)
 
 #Affichage de toutes les excentricités sur la même courbe
 plt.figure()
-T_aff = np.linspace(-duree,duree,20000)
+R = TabSol(planetes,m,a,H0,L0,P0,Q0)
 for i in range(1,len(planetes)):
-    E = [excentricite(i,t) for t in T]
+    E = [excentricite(i,t,R) for t in T]
     plt.plot(T_aff,E, lw=2)
 plt.ylabel("Excentricités")
 plt.xlabel("Temps - à 0 à l'instant présent (en années)")
@@ -262,19 +266,98 @@ plt.show()
 #Affichage des Noeuds ascendants
 plt.figure()
 for i in range(1,len(planetes)):
-    N = [theta(i,t)*180/pi for t in T]
-    plt.plot(T,N, lw=2)
+    N = [theta(i,t,R)*180/pi for t in T]
+    plt.plot(T_aff,N, lw=2)
 plt.grid()
 plt.show()
 
 #Affichage des inclinaisons
 plt.figure()
 for i in range(1,len(planetes)):
-    I = [inclinaison(i,t)*180/pi for t in T]
-    plt.plot(T,I, lw=2)
+    I = [inclinaison(i,t,R)*180/pi for t in T]
+    plt.plot(T_aff,I, lw=2)
+plt.ylabel("Inclinaisons")
+plt.xlabel("Temps - à 0 à l'instant présent (en années)")
+plt.title("Variation des inclinaisons au cours du temps")
+plt.legend(nom[1:])
 plt.grid()
 plt.show()
 
+#Mettre les fonctions de tracé ellipses
+def XEllipse(r,t,v,p):
+    return r*(np.cos(t)*np.cos(v-t)-np.sin(t)*np.sin(v-t)*np.cos(p))
+    
+def YEllipse(r,t,v,p):
+    return r*(np.sin(t)*np.cos(v-t)+np.cos(t)*np.sin(v-t)*np.cos(p))
+    
+def ZEllipse(r,t,v,p):
+    return r*np.sin(p)*np.sin(v-t)
+    
+def afficheEllipse(i,t,R):
+    ai = a[i]
+    e = excentricite(i,t,R)
+    teta = theta(i,t,R)
+    phi = inclinaison(i,t,R)
+    def r(v):
+        p = ai*(1-e**2)
+        return p/(1-e*np.cos(v-teta))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V = [k*pi/180 for k in range(360)]
+    X = [XEllipse(r(v),t,v,phi) for v in V]
+    Y = [YEllipse(r(v),t,v,phi) for v in V]
+    Z = [ZEllipse(r(v),t,v,phi) for v in V]
+    ax.scatter(X,Y,Z, c='r')
+    ax.scatter([0],[0],[0], c='b')
+    plt.show()
+    
+def afficheSystemeSolaire(t,R):
+    ecalc = [excentricite(i,t,R) for i in range(8)]
+    teta = [theta(i,t,R) for i in range(8)]
+    phi = [inclinaison(i,t,R) for i in range(8)]
+    def r(v,i):
+        p = a[i]*(1-ecalc[i]**2)
+        return p/(1-ecalc[i]*np.cos(v-teta[i]))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    V = [k*pi/180 for k in range(360)]
+    for j in range(8):
+        ax.scatter([XEllipse(r(v,j),t,v,phi[j]) for v in V], [YEllipse(r(v,j),t,v,phi[j]) for v in V], [ZEllipse(r(v,j),t,v,phi[j]) for v in V])
+    ax.scatter([0],[0],[0], c='b')
+    plt.show()
+
+## Analyse des résultats
+
+#Pour simplifier les fonctions, on va toujours prendre en entrée le tableau des fonctions [H,L,P,Q] correspondantes où H,L,P,Q sont les tableaux de fonctions résultats pour les conditions initiales données
+
+#On calcul ici l'écart moyen des excentricités de 2 solutions entre t1 et t2
+def EcartMoyExc(i,R1,R2,t1,t2):
+    n = abs(t2-t1)//1000
+    s=0
+    for j in range(n):
+        s += abs(excentricite(i,j*annee*1000+t1,R1)-excentricite(i,j*annee*1000+t1,R2))
+    return s/n
+#On observe ici que pour toute variation, l'écart moyen converge, ce qui est un résultat attendu
+
+def affiche2Exc(R1,R2,t1,t2,n,L):
+    plt.figure()
+    T = np.linspace(t1*annee,t2*annee,n)
+    Taff = np.linspace(t1,t2,n)
+    for i in L:
+        E1 = [excentricite(i,t,R1) for t in T]
+        plt.plot(T_aff,E1, lw=2)
+        E2 = [excentricite(i,t,R2) for t in T]
+        plt.plot(T_aff,E2, lw=2)
+    plt.ylabel("Excentricités")
+    plt.xlabel("Temps - à 0 à l'instant présent (en années)")
+    plt.title("Variation des excentricités au cours du temps")
+    plt.grid()
+    plt.show()
+
+def aff2ExcGeneral(l1,l2,e1,e2,m1,m2,a1,a2,t1,t2,n,L):
+    R1 = TabSol(l1,m1,a1,H0,L0,P0,Q0)
+    R2 = TabSol(l2,m2,a2,H0,L0,P0,Q0)
+    affiche2Exc(R1,R2,t1,t2,n,L)
 
 ## Résultats de Le Verrier :
 E_terre=[0.046,0.0473,0.0452,0.0398,0.0316,0.0218,0.0131,0.0109,0.0151,0.0188,0.0187,0.0168,0.0115,0.0047,0.0059,0.0124,0.0173,0.0199,0.0211,0.0188,0.0176,0.0189]
