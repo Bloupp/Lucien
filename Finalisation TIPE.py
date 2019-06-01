@@ -343,6 +343,26 @@ def EcartMoyExc(i,R1,R2,t1,t2):
     return s/n
 #On observe ici que pour toute variation, l'écart moyen converge, ce qui est un résultat attendu
 
+#n=nb de subdiv, L=liste des planetes à plot
+def aff1Exc(R,t1,t2,n,L):
+    plt.figure()
+    T = np.linspace(t1*annee,t2*annee,n)
+    Taff = np.linspace(t1,t2,n)
+    Legend = []
+    for i in L:
+        Legend.append(nom[i])
+        E = [excentricite(i,t,R) for t in T]
+        plt.plot(Taff,E, lw=2)
+    plt.ylabel("Excentricités")
+    plt.xlabel("Temps - à 0 à l'instant présent (en années)")
+    plt.title("Variation des excentricités au cours du temps")
+    plt.legend(Legend)
+    plt.grid()
+    plt.show()
+    
+def aff1ExcGeneral(l,masse,dga,t1,t2,n,L):
+    R1 = TabSol(l,masse,dga,H0,L0,P0,Q0)
+    aff1Exc(R1,t1,t2,n,L)
 def affiche2Exc(R1,R2,t1,t2,n,L):
     plt.figure()
     T = np.linspace(t1*annee,t2*annee,n)
