@@ -33,33 +33,6 @@ def Leverrier(A):
     P.append(1)
     return Polynomial(P)
 
-#On va donc calculer les racines de ce polynome qui sont les valeurs propres de A
-def valeurs_propres(A):
-    p = Leverrier(A)
-    return p.roots()
-
-
-## Diagonalisation de la matrice M
-
-def Dm(M):
-    n = len(M)
-    D = np.zeros((n,n))
-    vp = valeurs_propres( M )
-    for i in range(n):
-        D[i,i] = vp[i]
-    return D
-
-def Qm(M):      #Calcul de la base de vecteurs propres infructueux
-    n = len(list)
-    vp = valeurs_propres( M )
-    X0 = np.zeros((1,n))
-    Q = np.zeros((n,0))
-    for i in range(n):
-        S = M-vp[i]*np.eye(n)
-        X = np.linalg.solve(S,X0)
-        Q = np.concatenate((Q,X),axis=1)
-    return Q
-
 def diagonalisation(M):
     D,Q=alg.eig(M)
     return alg.inv(Q),np.diag(D),Q
